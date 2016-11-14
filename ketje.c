@@ -89,26 +89,41 @@ printf("Key = %s \nKeylen = %d\n",key,k_len);
 
 printf("MonkeyWrap\n");
 //TODO: check if the value 8 is correct
-MonkeyWrapInitialize(D,key,k_len,0,8);
+MonkeyWrapInitialize(D,key,k_len,nonce,n_len);
 return;
 
 }
 
 void MonkeyWrapInitialize(Duplex *D, unsigned char *key, unsigned int k_len,
-		unsigned int seq_no,unsigned int seq_len){
+		unsigned char* seq_no,unsigned int seq_len){
 unsigned char *result=NULL,*data_2_feed=NULL;
 unsigned long result_len;
 unsigned int i;
 printf("MonkeyWrapInitialize\n");
+printf("Keylen is %u\n",k_len);
 /*Create keypack, than concatenate it with the public sequence number */
 keypack(&result,key,k_len,k_len+16);
+printf("len after keypack is %u\n",k_len+16);
+
+//TODO put 200 in a more elegant form
+for (i = 0 ; i < 200 ; i++)
+	printf("%.2x ",result[i]);
+printf("\n");
+
+
+
+
 //TODO Make the error on the constant suppress.
+
+if (seq_len != 0){
 result_len = concatenate(&data_2_feed,result,k_len+16,
 		&seq_no,seq_len); 
 printf("Resulting len before Duplex Start: %lu\n",result_len);
 
 
-DuplexStart(D,data_2_feed,result_len);
+DuplexStart(D,data_2_feed,result_len);}
+else 
+DuplexStart(D,result,result_len);
 /*
 for (i = 0 ; i < 200 ; i++)
 	printf("%.2x ",D->state[i]);
@@ -134,9 +149,16 @@ printf("no pad needed\n");
 state = I;
 }
 printf("n_start is %u\n",D->n_start);
-/*for (int i = 0 ; i < 200 ; i++)
+/*
+ * There is an error on the padding because is shows 01 80 instead of 01 00
+ * */
+state[199] = 0x00;
+
+/*
+for (int i = 0 ; i < 200 ; i++)
 	printf("%.2x ",state[i]);
-printf("\n\n");*/
+printf("\n\n");
+*/
 D->state = keccak_p_star(state,D->rho,D->n_start,D->f);
 free(padding);
 free(state);
@@ -159,7 +181,7 @@ if ( n_bits > (255*8) || n_bits%8 ) exit(EXIT_FAILURE);
 printf("Keypack is here\n");
 printf("K = %u - l = %u\n",n_bits,l);
 */
-
+int i;
 unsigned char*res = NULL;
 unsigned char *pad_key=NULL,*padding=NULL;
 unsigned long result_size;
@@ -170,10 +192,24 @@ B_val = (unsigned char) l/8;
 //printf("The number of bytes is: %u\n",B_val);
 //printf("Concatenating key with its value in bytes\n");
 result_size = concatenate(&pad_key,&B_val, 8 ,key, n_bits);
+/*
+for (i = 0 ; i < (result_size)/8 ; i++)
+	printf("%.2x ",pad_key[i]);
+printf("\n");
+*/
 //printf("The first byte of the array is %.2x\n",pad_key[0]);
 if (result_size <= 0 ) exit(EXIT_FAILURE);
-//printf("Adding padding to arrive to the desired size\n");
-result_size = pad10x1(&padding,l-8,n_bits);
+printf("Adding padding to arrive to the desired size\n");
+//TODO put 1600 into a more elegant form
+result_size = pad10x1(&padding,1600,n_bits+8);
+/*
+for (i = 0 ; i < (result_size)/8 ; i++)
+	printf("%.2x ",padding[i]);
+printf("\n");
+*/
+
+
+
 //alignment value is l but I have already key + n_BYTES
 if (result_size <= 0 ) exit(EXIT_FAILURE);
 result_size = concatenate(result,pad_key,n_bits +8, padding,result_size);

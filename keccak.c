@@ -103,7 +103,10 @@ void printStateArrayInverted(uint64_t * A)
 void Round(uint64_t * A, unsigned int rnd)
 {
 
-	for (unsigned int i = 0; i < rnd; i++) {
+unsigned int n_start = 12 + 2*256 -rnd;
+unsigned int n_end = 12 +(2*256) - 1;
+
+	for (unsigned int i = n_start; i < n_end; i++) {
 		trace(printf("\n+++Round %d+++\n", i));
 		r_ound(A, i);
 	}
@@ -128,8 +131,7 @@ void r_ound(uint64_t * A, unsigned int rnd)
 
 	for (x = 0; x < 5; ++x)
 		for (y = 0; y < 5; ++y) {
-			A[indexOf(2 * x + 3 * y, y)] =
-				A[indexOf(y, x)];
+			A[indexOf(2*x+3*y,y)] = A[indexOf(y,x)];
 
 		}
 
@@ -222,7 +224,7 @@ void r_ound(uint64_t * A, unsigned int rnd)
 
 */
 	trace(printf("After iota:%c\n", 0));
-	A[indexOf(0, 0)] = A[indexOf(0, 0)] ^ RC[rnd];
+	A[indexOf(0, 0)] = A[indexOf(0, 0)] ^ RC[rnd%25];
 
 	trace(printStateArrayInverted(A));
 
@@ -233,7 +235,10 @@ void r_ound(uint64_t * A, unsigned int rnd)
 	for (x = 0; x < 5; ++x)
 		for (y = 0; y < 5; ++y) {
 		
-				A[indexOf(y,x)] = A[indexOf(x, x + 3 * y)];
+	 A[indexOf(x,x+3*y)] = A[indexOf(x,y)] ;
+	// A[indexOf(x+3*y,x)] = A[indexOf(y,x)] ;
+// A[indexOf(x+3*y,x)] = A[indexOf(y,x)] ;
+
 
 
 		//	printf("x = %u - y = %u indexof(x,y) = %u- own %u\n",

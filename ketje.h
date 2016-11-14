@@ -29,7 +29,7 @@ void
 DuplexStart(Duplex *D,unsigned char *I,unsigned long i_len);
 
 void MonkeyWrapInitialize(Duplex *D, unsigned char *key, unsigned int k_len,
-		unsigned int seq_no,unsigned int seq_len);
+		unsigned char *seq_no,unsigned int seq_len);
 void
 MonkeyWrap(Duplex *D, unsigned char *cryptogram,
 		unsigned char *tag, unsigned int t_len,
