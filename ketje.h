@@ -50,6 +50,6 @@ void ketje_mj_e(unsigned char *cryptogram,
 /* You can add your own functions below this line.
  * Do NOT modify anything above. */
 void
-keypack(unsigned char** result,unsigned char *key,unsigned long n_bits,
+keypack(unsigned char** result,const unsigned char *key,unsigned long n_bits,
 		unsigned long l);
 #endif				/* KETJE_H */

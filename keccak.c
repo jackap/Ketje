@@ -7,7 +7,7 @@
 /* Useful macros */
 /* Rotate a 64b word to the left by n positions */
 #define ROL64(a, n) ((((n)%64) != 0) ? ((((uint64_t)a) << ((n)%64)) ^ (((uint64_t)a) >> (64-((n)%64)))) : a)
-
+#define mapping(x, y) (x + (y*5))
 unsigned long RC[] =
 {
 	0x0000000000000001,
@@ -45,13 +45,22 @@ unsigned long RhoOffset[5][5] = {
 	{27, 20, 39, 8, 14}
 };
 
+unsigned int mod (int a, int b)
+{
+	int ret = a % b;
+    if(ret < 0)
+    	ret+=b;
+    return ret;
+}
+
+
 /// This function is hidden because it is used only within this file
 void r_ound(uint64_t * A, unsigned int rnd);
 void Round(uint64_t * A, unsigned int rnd);
 void printStateArrayInverted(uint64_t * A);
 void printStateArray(uint64_t * A);
-
-
+void keccak_pi(uint64_t *A);
+void keccak_pi_1(uint64_t *A);
 /* Function prototypes */
 unsigned char rc(unsigned int t);
 
@@ -104,30 +113,21 @@ void printStateArrayInverted(uint64_t * A)
 void Round(uint64_t * A, unsigned int rnd)
 {
 
-unsigned int n_start = 12 + 2*6 -rnd;
-unsigned int n_end = 12 +(2*6);
-unsigned int x,y;
+	unsigned int n_start = 12 + 2*6 -rnd;
+	unsigned int n_end = 12 +(2*6);
+	unsigned int x,y;
 
-//pi^(-1)
-for (x = 0; x < 5 ; x++)
-	for(y=0;y<5;y++)
-	{
-	A[indexOf(x,x+3*y)] = A[indexOf(y,x)];
-	}
+	//pi^(-1)
+	keccak_pi_1(A);
 
 
-
-for (unsigned int i = n_start; i < n_end; i++) {
+	for (unsigned int i = n_start; i < n_end; i++) {
 		trace(printf("\n+++Round %d+++\n", i));
 		r_ound(A, i);
 	}
 
-//pi
-for (x = 0; x < 5 ; x++)
-	for(y=0;y<5;y++)
-	{
-	A[indexOf(y,2*x+3*y)] = A[indexOf(x,y)];
-	}
+	//pi
+	keccak_pi(A);
 
 
 
@@ -182,13 +182,13 @@ void r_ound(uint64_t * A, unsigned int rnd)
 	   */
 	/*trace(printf("After rho:\n"));
 
-	for (x = 0; x < 5; x++) 
-		for (y = 0; y < 5; y++) 
-			B[indexOf(y, x)] =
-				ROL64(A[indexOf(y, x)], RhoOffset[x][y]);
+	  for (x = 0; x < 5; x++) 
+	  for (y = 0; y < 5; y++) 
+	  B[indexOf(y, x)] =
+	  ROL64(A[indexOf(y, x)], RhoOffset[x][y]);
 
-	trace(printStateArrayInverted(B));
-*/
+	  trace(printStateArrayInverted(B));
+	  */
 
 	///pi step
 
@@ -238,10 +238,94 @@ void r_ound(uint64_t * A, unsigned int rnd)
 
 
 
-	trace(printStateArrayInverted(A));
 
 
 }
+void keccak_pi(uint64_t *A){
+
+	unsigned int x = 1, y = 0; 
+	unsigned int x2 = 0, y2 = 0; 
+	unsigned int posInitial = 0; 
+	unsigned int posInitialFlag = mapping (x, y); //index of (1, 0)
+	unsigned int posNext = 0; 
+	uint64_t s1 = A[posInitialFlag]; //save the element in position number one 
+
+	/* For all the element, perform the operation: A[x,y] = A[(x+3y)mod 5, x] */
+	/* Since this operation should be performed for all the values of x and y 
+	 * it is necessary to initialize x or y to a value different to 0,
+	 * otherwise in each iteraction of the while loop above 
+	 * will not change the values of x and y ( mapping (0,0) == (0,0) ).
+	 * If (x, y) are initialized to (1, 0), the element at this index
+	 * will be changed, thus it is necessary to store its initial value 
+	 * somewhere (in s1), in order to assign it later to another element
+	 * when required.
+	 */
+	while (posNext != posInitialFlag){
+		posInitial = mapping (x, y); //find the position in the string for the left element of the operation
+		y2 = x; //y index for the right element of the operation
+		x2 = mod ((x + 3*y), 5); //x index for the right element of the operation
+		posNext = mapping (x2, y2); //find the position in the string for the right element of the operation
+
+		/* The element is position 1 has been modified by previous iteraction, so we cannot perform 
+		 * a normal assignment operation, but we need to assign the old value of the element s[1],
+		 * previous saved in s1 */
+		if(posNext != posInitialFlag) 
+			A[posInitial] = A[posNext]; //the operation is normally performed
+		else A[posInitial] = s1;  
+		/* Changing x and y value for the next iteration */ 
+		x = x2;
+		y = y2;
+	} 
+
+
+
+
+
+}
+
+void keccak_pi_1(uint64_t *A){
+
+	unsigned int x = 1, y = 0; 
+	unsigned int x2 = 0, y2 = 0; 
+	unsigned int posInitial = 0; 
+	unsigned int posInitialFlag = mapping (x, y); //index of (1, 0)
+	unsigned int posNext = 0; 
+	uint64_t s1 = A[posInitialFlag]; //save the element in position number one 
+
+	/* For all the element, perform the operation: A[x,y] = A[(x+3y)mod 5, x] */
+	/* Since this operation should be performed for all the values of x and y 
+	 * it is necessary to initialize x or y to a value different to 0,
+	 * otherwise in each iteraction of the while loop above 
+	 * will not change the values of x and y ( mapping (0,0) == (0,0) ).
+	 * If (x, y) are initialized to (1, 0), the element at this index
+	 * will be changed, thus it is necessary to store its initial value 
+	 * somewhere (in s1), in order to assign it later to another element
+	 * when required.
+	 */
+	while (posNext != posInitialFlag){
+		posInitial = mapping (x, y); //find the position in the string for the left element of the operation
+		x2 = y; //y index for the right element of the operation
+		y2 = mod ((2*x + 3*y), 5); //x index for the right element of the operation
+		posNext = mapping (x2, y2); //find the position in the string for the right element of the operation
+
+		/* The element is position 1 has been modified by previous iteraction, so we cannot perform 
+		 * a normal assignment operation, but we need to assign the old value of the element s[1],
+		 * previous saved in s1 */
+		if(posNext != posInitialFlag) 
+			A[posInitial] = A[posNext]; //the operation is normally performed
+		else A[posInitial] = s1;  
+		/* Changing x and y value for the next iteration */ 
+		x = x2;
+		y = y2;
+	} 
+
+
+
+
+
+}
+
+
 
 /* Perform the KECCAK-p*[b, n_r] algorithm
  *
@@ -263,15 +347,17 @@ unsigned char *keccak_p_star(unsigned char *S, unsigned long b, int nr, int l)
 
 	unsigned char *output_string = calloc (200,sizeof(unsigned char));
 	memcpy(output_string, S, 200 * sizeof(char));
- 
-for (int i = 0 ; i < 200 ; i++)
-	printf("%.2x ",output_string[i]);
-printf("\n\n");	
+	
+	printf("******************** STATE BEFORE KECCAK ***************\n\n");
+	for (int i = 0 ; i < 200 ; i++)
+		printf("%.2x ",output_string[i]);
+	printf("\n\n");	
 	Round((uint64_t*) output_string,nr);
 
-for (int i = 0 ; i < 200 ; i++)
-	printf("%.2x ",output_string[i]);
-printf("\n\n");	
+	printf("*****************STATE AFTER KECCAK**********************\n\n");
+	for (int i = 0 ; i < 200 ; i++)
+		printf("%.2x ",output_string[i]);
+	printf("\n\n");	
 
 	return output_string;
 }
