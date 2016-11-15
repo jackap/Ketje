@@ -347,18 +347,7 @@ unsigned char *keccak_p_star(unsigned char *S, unsigned long b, int nr, int l)
 
 	unsigned char *output_string = calloc (200,sizeof(unsigned char));
 	memcpy(output_string, S, 200 * sizeof(char));
-	
-	printf("******************** STATE BEFORE KECCAK ***************\n\n");
-	for (int i = 0 ; i < 200 ; i++)
-		printf("%.2x ",output_string[i]);
-	printf("\n\n");	
 	Round((uint64_t*) output_string,nr);
-
-	printf("*****************STATE AFTER KECCAK**********************\n\n");
-	for (int i = 0 ; i < 200 ; i++)
-		printf("%.2x ",output_string[i]);
-	printf("\n\n");	
-
 	return output_string;
 }
 
