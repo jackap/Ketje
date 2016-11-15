@@ -1,5 +1,6 @@
 #include <inttypes.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 #include "keccak.h"
 
@@ -103,13 +104,34 @@ void printStateArrayInverted(uint64_t * A)
 void Round(uint64_t * A, unsigned int rnd)
 {
 
-unsigned int n_start = 12 + 2*256 -rnd;
-unsigned int n_end = 12 +(2*256) - 1;
+unsigned int n_start = 12 + 2*6 -rnd;
+unsigned int n_end = 12 +(2*6);
+unsigned int x,y;
 
-	for (unsigned int i = n_start; i < n_end; i++) {
+//pi^(-1)
+for (x = 0; x < 5 ; x++)
+	for(y=0;y<5;y++)
+	{
+	A[indexOf(x,x+3*y)] = A[indexOf(y,x)];
+	}
+
+
+
+for (unsigned int i = n_start; i < n_end; i++) {
 		trace(printf("\n+++Round %d+++\n", i));
 		r_ound(A, i);
 	}
+
+//pi
+for (x = 0; x < 5 ; x++)
+	for(y=0;y<5;y++)
+	{
+	A[indexOf(y,2*x+3*y)] = A[indexOf(x,y)];
+	}
+
+
+
+
 }
 void r_ound(uint64_t * A, unsigned int rnd)
 {
@@ -120,20 +142,6 @@ void r_ound(uint64_t * A, unsigned int rnd)
 	bzero(C, sizeof(C));
 	bzero(D, sizeof(D));
 	bzero(B, sizeof(B));
-
-	///pi step
-
-	/*
-	   B[y,x] =  B[y,2*x+3*y] forall (x,y) in (0…4,0…4)
-
-*/
-	trace(printf("After pi:\n"));
-
-	for (x = 0; x < 5; ++x)
-		for (y = 0; y < 5; ++y) {
-			A[indexOf(2*x+3*y,y)] = A[indexOf(y,x)];
-
-		}
 
 	trace(printStateArrayInverted(A));
 	///theta step
@@ -172,7 +180,7 @@ void r_ound(uint64_t * A, unsigned int rnd)
 	   B[y,x] = rot(A[x,y], r[x,y])
 	   forall (x,y) in (0…4,0…4)
 	   */
-	trace(printf("After rho:\n"));
+	/*trace(printf("After rho:\n"));
 
 	for (x = 0; x < 5; x++) 
 		for (y = 0; y < 5; y++) 
@@ -180,7 +188,7 @@ void r_ound(uint64_t * A, unsigned int rnd)
 				ROL64(A[indexOf(y, x)], RhoOffset[x][y]);
 
 	trace(printStateArrayInverted(B));
-
+*/
 
 	///pi step
 
@@ -228,22 +236,7 @@ void r_ound(uint64_t * A, unsigned int rnd)
 
 	trace(printStateArrayInverted(A));
 
-	//pi^(-1) step
 
-	trace(printf("After pi-1\n"));
-
-	for (x = 0; x < 5; ++x)
-		for (y = 0; y < 5; ++y) {
-		
-	 A[indexOf(x,x+3*y)] = A[indexOf(x,y)] ;
-	// A[indexOf(x+3*y,x)] = A[indexOf(y,x)] ;
-// A[indexOf(x+3*y,x)] = A[indexOf(y,x)] ;
-
-
-
-		//	printf("x = %u - y = %u indexof(x,y) = %u- own %u\n",
-		//	x,y,indexOf(x,x+3 * y),(5*(x+3Y)+y)%25);
-		}
 
 	trace(printStateArrayInverted(A));
 
@@ -274,7 +267,7 @@ unsigned char *keccak_p_star(unsigned char *S, unsigned long b, int nr, int l)
 for (int i = 0 ; i < 200 ; i++)
 	printf("%.2x ",output_string[i]);
 printf("\n\n");	
-	Round((uint64_t) output_string,nr);
+	Round((uint64_t*) output_string,nr);
 
 for (int i = 0 ; i < 200 ; i++)
 	printf("%.2x ",output_string[i]);

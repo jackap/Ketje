@@ -1,4 +1,3 @@
-
 #include <inttypes.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -48,7 +47,7 @@ void ketje_mj_e(unsigned char *cryptogram,
 printf("Inside ketje\n");
 Duplex *D = DuplexInit(1600,256,12,1,6);
 if (key == NULL) return;
-printf("Key = %s \nKeylen = %d\n",key,k_len); 
+//printf("Key = %s \nKeylen = %d\n",key,k_len); 
 MonkeyWrap(D,cryptogram,tag, t_len,key,
 k_len,nonce,n_len,data, d_len,header, h_len);
 
@@ -84,7 +83,7 @@ MonkeyWrap(Duplex *D, unsigned char *cryptogram,
 		 unsigned char *header, unsigned long h_len)
 {
 
-printf("Key = %s \nKeylen = %d\n",key,k_len); 
+//printf("Key = %s \nKeylen = %d\n",key,k_len); 
 
 
 printf("MonkeyWrap\n");
@@ -103,15 +102,8 @@ printf("MonkeyWrapInitialize\n");
 printf("Keylen is %u\n",k_len);
 /*Create keypack, than concatenate it with the public sequence number */
 keypack(&result,key,k_len,k_len+16);
+result_len = k_len+16;
 printf("len after keypack is %u\n",k_len+16);
-
-//TODO put 200 in a more elegant form
-for (i = 0 ; i < 200 ; i++)
-	printf("%.2x ",result[i]);
-printf("\n");
-
-
-
 
 //TODO Make the error on the constant suppress.
 
@@ -139,20 +131,22 @@ printf("Inside DuplexStart\n");
 unsigned char *padding=NULL,*state=NULL;
 unsigned long pad_len;
 /* Add padding */
+printf("D->f:%u, I_len:%u\n",D->f, i_len);
 if (i_len%D->f){
 pad_len = pad10x1(&padding,D->f,i_len);
 printf("After padding\n");
 concatenate(&state,I,i_len,padding,pad_len);
-printf("After concatenate\n");}
+printf("After concatenate\n");
+//TODO put 200 in a more elegant form
+for (unsigned int i = 0 ; i < 200 ; i++)
+	printf("%.2x ",state[i]);
+printf("\n");
+}
 else {
 printf("no pad needed\n");
 state = I;
 }
 printf("n_start is %u\n",D->n_start);
-/*
- * There is an error on the padding because is shows 01 80 instead of 01 00
- * */
-state[199] = 0x00;
 
 /*
 for (int i = 0 ; i < 200 ; i++)
@@ -183,13 +177,12 @@ printf("K = %u - l = %u\n",n_bits,l);
 */
 int i;
 unsigned char*res = NULL;
-unsigned char *pad_key=NULL,*padding=NULL;
+unsigned char *pad_key=NULL;
 unsigned long result_size;
-unsigned char //*B_val = malloc(sizeof(char));
-B_val = (unsigned char) l/8;
+uint8_t B_val = l/8, padding=0x01;
 
 // you cannot have  %8 != 0
-//printf("The number of bytes is: %u\n",B_val);
+printf("The number of bytes is: %u\n",B_val);
 //printf("Concatenating key with its value in bytes\n");
 result_size = concatenate(&pad_key,&B_val, 8 ,key, n_bits);
 /*
@@ -199,25 +192,14 @@ printf("\n");
 */
 //printf("The first byte of the array is %.2x\n",pad_key[0]);
 if (result_size <= 0 ) exit(EXIT_FAILURE);
-printf("Adding padding to arrive to the desired size\n");
-//TODO put 1600 into a more elegant form
-result_size = pad10x1(&padding,1600,n_bits+8);
-/*
-for (i = 0 ; i < (result_size)/8 ; i++)
-	printf("%.2x ",padding[i]);
-printf("\n");
-*/
-
-
 
 //alignment value is l but I have already key + n_BYTES
 if (result_size <= 0 ) exit(EXIT_FAILURE);
-result_size = concatenate(result,pad_key,n_bits +8, padding,result_size);
+result_size = concatenate(result,pad_key,n_bits +8, &padding,8);
 //printf("At the end result_size is %u\n",result_size);
 //now keypack should be completed.A
 //printf("OK\n");
 free(pad_key);
-free(padding);
 return;
 }
 
