@@ -18,18 +18,30 @@
  */
 
 typedef struct m_obj {
-unsigned int f,n_start,n_step,n_stride,rho;
+unsigned int f,n_start,n_step,n_stride,rho,r;
 unsigned char *state;
 } Duplex;
 
-Duplex *DuplexInit(unsigned int f,unsigned int rho,unsigned int n_start,
+Duplex*
+DuplexInit(unsigned int f,unsigned int rho,unsigned int n_start,
 		unsigned int n_step,unsigned int n_stride);
 
 void 
 DuplexStart(Duplex *D,unsigned char *I,unsigned long i_len);
 
+void
+DuplexStep(Duplex *D, unsigned char *sigma,unsigned long s_len,
+		unsigned long l);
+
+
 void MonkeyWrapInitialize(Duplex *D, unsigned char *key, unsigned int k_len,
 		unsigned char *seq_no,unsigned int seq_len);
+void MonkeyWrapWrap(Duplex *D,unsigned char *cryptogram, 
+		unsigned char *tag, unsigned int t_len,
+		 unsigned char *data, unsigned long d_len,
+		 unsigned char *header, unsigned long h_len);
+
+
 void
 MonkeyWrap(Duplex *D, unsigned char *cryptogram,
 		unsigned char *tag, unsigned int t_len,
