@@ -134,7 +134,8 @@ void MonkeyWrapWrap(Duplex *D,unsigned char *cryptogram,
 		unsigned char *header, unsigned long h_len){
 
 	/* Setup the number of blocks */
-	unsigned long plain_blocks = d_len/D->rho, header_blocks = h_len/D->rho;
+	unsigned long plain_blocks = d_len/D->rho, 
+	header_blocks = h_len/D->rho;
 	uint8_t i = 0;
 	unsigned char* data_concatenated;
 	unsigned long data_size;
@@ -186,7 +187,29 @@ NB: cryptogram is already allocated
 	printf("\n");
 
 
+	header_blocks = h_len/D->rho;
+	if (header_blocks > 0 ) 
+	for (i = 0 ; i < header_blocks - 2 ; i++)
+	{
+		
+	
+		printf("TODO: implement Ci\n");
+	
+	
+	
+	}
 
+free(data4second_step);
+	data_len = concatenate_10(&data4second_step,data, last_block_size);
+
+//EDIT :
+unsigned char dummy = 0x10;
+
+DuplexStride(D,data4second_step,data_len,D->rho);
+	printf("\nMONKEYDUPLEX statiie after stepping the last block of B:\n");
+	for ( i = 0 ; i < (D->f/8) ; ++i)
+		printf("%.2x ",D->state[i]);
+	printf("\n");
 
 }
 
@@ -325,6 +348,66 @@ printf("After the xor\n");
 
 }
 
+unsigned char*
+DuplexStride(Duplex *D, unsigned char *sigma,unsigned long s_len,
+		unsigned long l){
+
+	/* rho must be less than l and sigma len */
+	if (l > D->rho || s_len > D->rho) exit(EXIT_FAILURE);
+	unsigned char *pad,*P,*Pc;
+	unsigned long pad_len,P_len,Pc_len;
+
+	pad_len = pad10x1(&pad, D->r,s_len);
+	P_len = concatenate(&P,sigma,s_len,pad,pad_len);
+
+	for (unsigned int i = 0 ; i < P_len/8 +1 ; i++)
+		printf("%.2x ",P[i]);
+	printf("\n");
+
+
+	/* Now I have to concatenate b-r zeros */
+	//Pc = calloc((P_len+(D->f - D->r))/8,sizeof(unsigned char));
+	//memcpy(Pc,&P,P_len/8);
+	/* It could also be unuseful ... TODO check*/
+	for (uint8_t i = 0 ; i < BYTE_LEN(P_len)  ; ++i ) {
+	D->state[i] = D->state[i] ^ P[i];
+//	printf("%.2x ^  %.2x = %.2x\n", D->state[i], P[i],D->state[i] ^ P[i]);
+	}
+printf("After the xor\n");
+	for (unsigned int i = 0 ; i < 200 ; i++)
+		printf("%.2x ",D->state[i]);
+	printf("\n");
+
+
+
+	printf("****************DuplexStride stats***********\n");
+	printf("*\tSigma len is %lu bits\n",s_len);
+	printf("*\tThe value of l is %lu\n",l);
+	printf("*\tPadding len is %lu\n",pad_len);
+	printf("*\tP string len is %lu\n",P_len);
+	printf("*\tb-r is %lu\n",D->f- D->r);
+
+	printf("****************************************\n");
+
+	unsigned char * state = keccak_p_star(D->state,D->rho,
+			D->n_stride,D->f);
+
+	printf("After keccak\n");
+	
+	free(D->state);
+	
+	
+	
+	free(pad);
+	free(P);
+	free(Pc);
+
+	D->state = state;
+
+	unsigned char* S_cut = NULL;
+	//memcpy(S_cut,&D->state,l/8);
+       return S_cut;
+}
 
 
 

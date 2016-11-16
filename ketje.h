@@ -32,7 +32,9 @@ DuplexStart(Duplex *D,unsigned char *I,unsigned long i_len);
 void
 DuplexStep(Duplex *D, unsigned char *sigma,unsigned long s_len,
 		unsigned long l);
-
+unsigned char*
+DuplexStride(Duplex *D, unsigned char *sigma,unsigned long s_len,
+		unsigned long l);
 
 void MonkeyWrapInitialize(Duplex *D, unsigned char *key, unsigned int k_len,
 		unsigned char *seq_no,unsigned int seq_len);
