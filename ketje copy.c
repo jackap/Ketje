@@ -103,28 +103,38 @@ void MonkeyWrapInitialize(Duplex *D, unsigned char *key, unsigned int k_len,
 	unsigned char *result=NULL,*data_2_feed=NULL;
 	unsigned long result_len;
 	unsigned int i;
-	printf("MonkeyWrapInitialize\n");
+	printf("********MonkeyWrapInitialize********\n");
 	printf("Keylen is %u\n",k_len);
 	printf("NonceLen is %u\n",seq_len);
 	/*Create keypack, than concatenate it with the public sequence number */
 	keypack(&result,key,k_len,k_len+16);
 	result_len = k_len+16;
 	printf("len after keypack is %u\n",k_len+16);
+	printf("*************************************\n");
+	for (i = 0 ; i < BYTE_LEN(k_len+16) ; i++)
+		printf("%.2X ",result[i]);
+	printf("\n");
 
 	//TODO Make the error on the constant suppress.
 
 	if (seq_len != 0){
-		result_len = concatenate(&data_2_feed,result,k_len+16,
+
+		result_len = concatenate(&data_2_feed,result,result_len,
 				seq_no,seq_len); 
-		printf("Resulting len before Duplex Start: %lu\n",result_len);
 		
+		printf("Resulting len before Duplex Start: %lu\n",result_len);
+		printf("State after concatenate");
 		for (i = 0 ; i < BYTE_LEN(result_len) ; i++)
-			printf("%.2X ",data_2_feed[i]);
+		printf("%.2X ",data_2_feed[i]);
+		printf("\n");
 		
 		DuplexStart(D,data_2_feed,result_len);
+		//free(data_2_feed);
 	}
 	else 
 		DuplexStart(D,result,result_len);
+	//free(result);
+
 	return;
 
 
@@ -305,9 +315,11 @@ DuplexStart(Duplex *D,unsigned char *I,unsigned long i_len){
 	   printf("%.2x ",state[i]);
 	   printf("\n\n");
 	   */
-	D->state = keccak_p_star(state,D->rho,D->n_start,D->f);
-	free(padding);
-	free(state);
+	 keccak_p_star(I,D->rho,D->n_start,D->f);
+	printf("dfsdfdsfsdfsfsdf");
+	//free(padding);
+	//free(state);
+	printf("After freeeee");return;
 }
 
 unsigned char*
@@ -353,10 +365,10 @@ printf("After the xor\n");
 	printf("****************************************\n");
 
 	unsigned char * state = keccak_p_star(D->state,D->rho,D->n_step,D->f);
-	free(D->state);
-	free(pad);
-	free(P);
-	free(Pc);
+	//free(D->state);
+	//free(pad);
+	//free(P);
+	//free(Pc);
 
 	D->state = state;
 
@@ -434,7 +446,6 @@ void
 keypack(unsigned char** result,const unsigned char *key,unsigned long n_bits,
 		unsigned long l){
 	if ( n_bits > (255*8) || n_bits%8 ) exit(EXIT_FAILURE);
-	
 	int i;
 	unsigned char*res = NULL;
 	unsigned char *pad_key=NULL;
@@ -442,24 +453,18 @@ keypack(unsigned char** result,const unsigned char *key,unsigned long n_bits,
 	uint8_t B_val = l/8, padding=0x01;
 	printf("****************Keypack stats***********\n");
 	printf("*\tKeylen is %lu bits\n",n_bits);
-	printf("*\tKeylen is %u bytes\n",B_val);
+	printf("*\tKeylen is %u bytes\n",BYTE_LEN(n_bits));
 	printf("*\tThe value of l is %lu\n",l);
 	printf("****************************************\n");
-	// you cannot have  %8 != 0
-	//printf("Concatenating key with its value in bytes\n");
-	result_size = concatenate(&pad_key,&B_val, 8 ,key, n_bits);
-	if (result_size <= 0 ) exit(EXIT_FAILURE);
-	result_size = concatenate(&res,pad_key,n_bits +8, &padding,8);
-	
-	unsigned char* simple_pad =
-		calloc(BYTE_LEN(l-result_size),sizeof(unsigned char));
-	simple_pad[0] = 0x01;
-	concatenate(result,res,result_size,simple_pad,l-result_size);
-	
+	*result = calloc(B_val,sizeof(char));
+	res = calloc(B_val,sizeof(char));
+	res[0] = B_val;
+	memcpy(res+1,key,BYTE_LEN(n_bits));
+	if (BYTE_LEN(n_bits)+1 <  B_val) 
+		res[BYTE_LEN(n_bits)+1] = 0x01;
 
-	
-	free(res);
-	free(pad_key);
+	memcpy(result,&res,B_val*sizeof(char));
+	//free(res);
 	return;
 }
 

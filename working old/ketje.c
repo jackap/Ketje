@@ -115,12 +115,8 @@ void MonkeyWrapInitialize(Duplex *D, unsigned char *key, unsigned int k_len,
 
 	if (seq_len != 0){
 		result_len = concatenate(&data_2_feed,result,k_len+16,
-				seq_no,seq_len); 
+				&seq_no,seq_len); 
 		printf("Resulting len before Duplex Start: %lu\n",result_len);
-		
-		for (i = 0 ; i < BYTE_LEN(result_len) ; i++)
-			printf("%.2X ",data_2_feed[i]);
-		
 		DuplexStart(D,data_2_feed,result_len);
 	}
 	else 
@@ -434,7 +430,10 @@ void
 keypack(unsigned char** result,const unsigned char *key,unsigned long n_bits,
 		unsigned long l){
 	if ( n_bits > (255*8) || n_bits%8 ) exit(EXIT_FAILURE);
-	
+	/*
+	   printf("Keypack is here\n");
+	   printf("K = %u - l = %u\n",n_bits,l);
+	   */
 	int i;
 	unsigned char*res = NULL;
 	unsigned char *pad_key=NULL;
@@ -448,17 +447,19 @@ keypack(unsigned char** result,const unsigned char *key,unsigned long n_bits,
 	// you cannot have  %8 != 0
 	//printf("Concatenating key with its value in bytes\n");
 	result_size = concatenate(&pad_key,&B_val, 8 ,key, n_bits);
+	/*
+	   for (i = 0 ; i < (result_size)/8 ; i++)
+	   printf("%.2x ",pad_key[i]);
+	   printf("\n");
+	   */
+	//printf("The first byte of the array is %.2x\n",pad_key[0]);
 	if (result_size <= 0 ) exit(EXIT_FAILURE);
-	result_size = concatenate(&res,pad_key,n_bits +8, &padding,8);
-	
-	unsigned char* simple_pad =
-		calloc(BYTE_LEN(l-result_size),sizeof(unsigned char));
-	simple_pad[0] = 0x01;
-	concatenate(result,res,result_size,simple_pad,l-result_size);
-	
-
-	
-	free(res);
+	//alignment value is l but I have already key + n_BYTES
+	if (result_size <= 0 ) exit(EXIT_FAILURE);
+	result_size = concatenate(result,pad_key,n_bits +8, &padding,8);
+	//printf("At the end result_size is %u\n",result_size);
+	//now keypack should be completed.A
+	//printf("OK\n");
 	free(pad_key);
 	return;
 }

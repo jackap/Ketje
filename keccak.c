@@ -344,10 +344,12 @@ unsigned char *keccak_p_star(unsigned char *S, unsigned long b, int nr, int l)
 	 * pi^(-1) (the inverse of pi) described in Section 2.1 of the Ketje
 	 * document and Section 8 of the Assignment 2 instructions.
 	 */
-
 	unsigned char *output_string = calloc (200,sizeof(unsigned char));
-	memcpy(output_string, S, 200 * sizeof(char));
+	memcpy(output_string,S, 200 * sizeof(char));
+
+	
 	Round((uint64_t*) output_string,nr);
+	printf("dfsdfsdfsdfs\n");
 	return output_string;
 }
 

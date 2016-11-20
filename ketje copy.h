@@ -16,6 +16,44 @@
  * header     - the additional plaintext, provided by the caller.
  * h_len      - the additional plaintext length in bits.
  */
+
+typedef struct m_obj {
+unsigned int f,n_start,n_step,n_stride,rho,r;
+unsigned char *state;
+} Duplex;
+
+Duplex*
+DuplexInit(unsigned int f,unsigned int rho,unsigned int n_start,
+		unsigned int n_step,unsigned int n_stride);
+
+void 
+DuplexStart(Duplex *D,unsigned char *I,unsigned long i_len);
+
+unsigned char*
+DuplexStep(Duplex *D, unsigned char *sigma,unsigned long s_len,
+		unsigned long l);
+unsigned char*
+DuplexStride(Duplex *D, unsigned char *sigma,unsigned long s_len,
+		unsigned long l);
+
+void MonkeyWrapInitialize(Duplex *D, unsigned char *key, unsigned int k_len,
+		unsigned char *seq_no,unsigned int seq_len);
+void MonkeyWrapWrap(Duplex *D,unsigned char *cryptogram, 
+		unsigned char *tag, unsigned int t_len,
+		 unsigned char *data, unsigned long d_len,
+		 unsigned char *header, unsigned long h_len);
+
+
+void
+MonkeyWrap(Duplex *D, unsigned char *cryptogram,
+		unsigned char *tag, unsigned int t_len,
+		 unsigned char *key, unsigned int k_len,
+		 unsigned char *nonce, unsigned int n_len,
+		 unsigned char *data, unsigned long d_len,
+		 unsigned char *header, unsigned long h_len);
+
+
+
 void ketje_mj_e(unsigned char *cryptogram,
 		unsigned char *tag, unsigned int t_len,
 		const unsigned char *key, unsigned int k_len,
@@ -25,5 +63,7 @@ void ketje_mj_e(unsigned char *cryptogram,
 
 /* You can add your own functions below this line.
  * Do NOT modify anything above. */
-
+void
+keypack(unsigned char** result,const unsigned char *key,unsigned long n_bits,
+		unsigned long l);
 #endif				/* KETJE_H */
