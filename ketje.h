@@ -26,7 +26,7 @@ Duplex*
 DuplexInit(unsigned int f,unsigned int rho,unsigned int n_start,
 		unsigned int n_step,unsigned int n_stride);
 
-void 
+void
 DuplexStart(Duplex *D,unsigned char *I,unsigned long i_len);
 
 unsigned char*

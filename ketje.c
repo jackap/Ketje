@@ -277,7 +277,7 @@ DuplexStep(D,NULL,0,D->rho);
 
 
 
-void 
+void
 DuplexStart(Duplex *D,unsigned char *I,unsigned long i_len){
 	printf("Inside DuplexStart\n");
 	unsigned char *padding=NULL,*state=NULL;
@@ -287,8 +287,9 @@ DuplexStart(Duplex *D,unsigned char *I,unsigned long i_len){
 	if (i_len%D->f){
 		pad_len = pad10x1(&padding,D->f,i_len);
 		printf("After padding\n");
-		concatenate(&state,I,i_len,padding,pad_len);
-		printf("After concatenate\n");
+	unsigned long result = 	concatenate(&state,I,i_len,padding,pad_len);
+		printf("After concatenate, the length is: %lu\n",result);
+		printf("STATE BEFORE KECCAK_P_STAR\n");
 		//TODO put 200 in a more elegant form
 		for (unsigned int i = 0 ; i < 200 ; i++)
 			printf("%.2x ",state[i]);
@@ -307,7 +308,11 @@ DuplexStart(Duplex *D,unsigned char *I,unsigned long i_len){
 	   */
 	D->state = keccak_p_star(state,D->rho,D->n_start,D->f);
 	free(padding);
-	free(state);
+	free(state);	
+	   for (int i = 0 ; i < 200 ; i++)
+	   printf("%.2x ",D->state[i]);
+	   printf("\n\n");
+	  
 }
 
 unsigned char*
@@ -359,6 +364,8 @@ printf("After the xor\n");
 	free(Pc);
 
 	D->state = state;
+	char * ret_val = calloc(BYTE_LEN(l),sizeof(char));
+	memcpy(ret_val,state,BYTE_LEN(l)*sizeof(char));
 
 
 
@@ -420,9 +427,10 @@ printf("After the xor\n");
 
 	D->state = state;
 
-	unsigned char* S_cut = NULL;
 	//memcpy(S_cut,&D->state,l/8);
-       return S_cut;
+	char * ret_val = calloc(BYTE_LEN(l),sizeof(char));
+	memcpy(ret_val,state,BYTE_LEN(l)*sizeof(char));
+       return ret_val;
 }
 
 
@@ -442,8 +450,8 @@ keypack(unsigned char** result,const unsigned char *key,unsigned long n_bits,
 	uint8_t B_val = l/8, padding=0x01;
 	printf("****************Keypack stats***********\n");
 	printf("*\tKeylen is %lu bits\n",n_bits);
-	printf("*\tKeylen is %u bytes\n",B_val);
-	printf("*\tThe value of l is %lu\n",l);
+	printf("*\tKeylen is %u bytes\n",BYTE_LEN(n_bits));
+	printf("*\tThe first byte of the new array should be %.2X\n",B_val);
 	printf("****************************************\n");
 	// you cannot have  %8 != 0
 	//printf("Concatenating key with its value in bytes\n");
@@ -454,8 +462,8 @@ keypack(unsigned char** result,const unsigned char *key,unsigned long n_bits,
 	unsigned char* simple_pad =
 		calloc(BYTE_LEN(l-result_size),sizeof(unsigned char));
 	simple_pad[0] = 0x01;
-	concatenate(result,res,result_size,simple_pad,l-result_size);
-	
+	unsigned long l_conc = concatenate(result,res,result_size,simple_pad,l-result_size);
+	printf("Len of the array after keypack is: %lu\n",l_conc);
 
 	
 	free(res);

@@ -349,7 +349,6 @@ unsigned char *keccak_p_star(unsigned char *S, unsigned long b, int nr, int l)
 
 	
 	Round((uint64_t*) output_string,nr);
-	printf("dfsdfsdfsdfs\n");
 	return output_string;
 }
 
