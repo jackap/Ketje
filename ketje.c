@@ -52,7 +52,8 @@ void ketje_mj_e(unsigned char *cryptogram,
 	MonkeyWrap(D,cryptogram,tag, t_len,key,
 			k_len,nonce,n_len,data, d_len,header, h_len);
 
-
+printf("Calling Wrap again\n");
+MonkeyWrapWrap(D,cryptogram,tag,t_len,data,288,header,h_len);
 	//printf("Size of the algorithm is %u\n",D->n_stride);
 	/* Implement this function */
 
@@ -136,12 +137,13 @@ void MonkeyWrapWrap(Duplex *D,unsigned char *cryptogram,
 		unsigned char *header, unsigned long h_len){
 
 	/* Setup the number of blocks */
-	unsigned long plain_blocks = d_len/D->rho, 
+
+	unsigned long plain_blocks = ((d_len/D->rho)+(d_len%D->rho?1:0)),  
 	header_blocks = h_len/D->rho;
 	uint8_t i = 0;
 	unsigned char* data_concatenated;
 	unsigned long data_size;
-	unsigned long last_block_size =  0 ; // famo finta che è zero
+	unsigned long last_block_size = 0,last_plain =  d_len%D->rho ; // famo finta che è zero
 	printf("****************MonkeyWrapWrap stats***********\n");
 	printf("*\tThere are %lu blocks of text d_len/D->rho \n",plain_blocks);
 	printf("*\tData len d_len is  %lu\n",d_len);
@@ -177,29 +179,39 @@ NB: cryptogram is already allocated
 	unsigned char * data4second_step = NULL;
 	unsigned int data_len;
 
-	data_len = concatenate_01(&data4second_step,data, last_block_size);
-	printf("data_len after concatenate is: %u\n",data_len);
+	data_len = concatenate_01(&data4second_step,&data[plain_blocks -1],
+			last_block_size);
+	printf("data_len after concatenating_01 is: %u\n",data_len);
 	printf("data is %.2x\n",data4second_step[0]);
 	//header is zero, and the total length is 2! 
-	DuplexStep(D,data4second_step,data_len,0);
+	unsigned char * Z = DuplexStep(D,data4second_step,data_len,0);
 	// at the end it will be equal to Z...
-	printf("\nMONKEYDUPLEX statiie after stepping the last block of A:\n");
+	printf("\nMONKEYDUPLEX state after stepping the last block of A:\n");
 	for ( i = 0 ; i < (D->f/8) ; ++i)
 		printf("%.2x ",D->state[i]);
 	printf("\n");
 
 
-	header_blocks = h_len/D->rho;
-	if (header_blocks > 0 ) 
-	for (i = 0 ; i < header_blocks - 2 ; i++)
+	header_blocks = h_len/D->rho;unsigned char*temp_i = NULL;
+	if (plain_blocks > 0 ){ 
+
+
+	for (i = 0 ; i <= plain_blocks - 2 ; i++)
 	{
-		
+		concatenate_11(&temp_i,&data[i],D->rho);
+
+		DuplexStep(D,temp_i,D->rho+2,D->rho);
+		/*printf("TODO: implement Ci\n");
+		for ( int j = 0 ; j < BYTE_LEN(D->rho) ; ++j)
+		printf("%.2x ",temp_i[j]);
+	printf("\n");*/
 	
-		printf("TODO: implement Ci\n");
 	
-	
-	
-	}
+	}}
+	printf("\nMONKEYDUPLEX statiie after for B......:\n");
+	for ( i = 0 ; i < (D->f/8) ; ++i)
+		printf("%.2x ",D->state[i]);
+	printf("\n");
 
 free(data4second_step);
 	data_len = concatenate_10(&data4second_step,data, last_block_size);
@@ -207,23 +219,33 @@ free(data4second_step);
 //EDIT :
 unsigned char dummy = 0x10;
 unsigned char *temp_tag;
-unsigned int temp_tag_len = D->f;
+unsigned int temp_tag_len = D->rho;
 unsigned char *ttag;
 unsigned long ttag_len;
-temp_tag = DuplexStride(D,data4second_step,data_len,D->rho);
+unsigned char*in_put;
+concatenate_10(&in_put,&data[(plain_blocks-1)*BYTE_LEN(D->rho)],last_plain);
+printf("++++++++++++++++++++++++++\n");
+for ( i = 0 ; i < BYTE_LEN(last_plain+2) ; ++i)
+		printf("%.2x ",in_put[i]);
+	printf("\n++++++++++++++++++++++++\n");
+temp_tag = DuplexStride(D,in_put,last_plain+2,D->rho);
 	printf("\nMONKEYDUPLEX statiie after stepping the last block of B:\n");
 	for ( i = 0 ; i < (D->f/8) ; ++i)
 		printf("%.2x ",D->state[i]);
 	printf("\n");
-/*
-while (temp_tag_len < t_len){
-DuplexStep(D,NULL,0,D->rho);
+unsigned char* tmp;
+while (temp_tag_len < 128){
+	printf("ANOMAL CASE ************************* \n ABORT");
+	exit(1);
+	concatenate(&tmp,temp_tag,D->rho,DuplexStep(D,NULL,0,D->rho),D->rho);
 	
+}	
+printf("\n\n+++++++++TAG+++++++++++\n\n");	
+for (int i = 0 ; i < BYTE_LEN(128) ; i++)
+	printf("%.2X ",temp_tag[i]);
+printf("\n");
 
 
-
-}
-*/
 
 
 
@@ -320,7 +342,7 @@ DuplexStep(Duplex *D, unsigned char *sigma,unsigned long s_len,
 		unsigned long l){
 
 	/* rho must be less than l and sigma len */
-	if (l > D->rho || s_len > D->rho) exit(EXIT_FAILURE);
+	//if (l > D->rho || s_len > D->rho) exit(EXIT_FAILURE);
 	unsigned char *pad,*P,*Pc;
 	unsigned long pad_len,P_len,Pc_len;
 
