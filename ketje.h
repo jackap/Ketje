@@ -36,21 +36,21 @@ unsigned char*
 DuplexStride(Duplex *D, unsigned char *sigma,unsigned long s_len,
 		unsigned long l);
 
-void MonkeyWrapInitialize(Duplex *D, unsigned char *key, unsigned int k_len,
-		unsigned char *seq_no,unsigned int seq_len);
+void MonkeyWrapInitialize(Duplex *D, const unsigned char *key, unsigned int k_len,
+		const unsigned char *seq_no,unsigned int seq_len);
 void MonkeyWrapWrap(Duplex *D,unsigned char *cryptogram, 
 		unsigned char *tag, unsigned int t_len,
-		 unsigned char *data, unsigned long d_len,
-		 unsigned char *header, unsigned long h_len);
+		const unsigned char *data, unsigned long d_len,
+		const unsigned char *header, unsigned long h_len);
 
 
 void
 MonkeyWrap(Duplex *D, unsigned char *cryptogram,
 		unsigned char *tag, unsigned int t_len,
-		 unsigned char *key, unsigned int k_len,
-		 unsigned char *nonce, unsigned int n_len,
-		 unsigned char *data, unsigned long d_len,
-		 unsigned char *header, unsigned long h_len);
+		const unsigned char *key, unsigned int k_len,
+		const unsigned char *nonce, unsigned int n_len,
+		const unsigned char *data, unsigned long d_len,
+		const unsigned char *header, unsigned long h_len);
 
 
 
