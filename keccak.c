@@ -45,12 +45,12 @@ unsigned long RhoOffset[5][5] = {
 	{27, 20, 39, 8, 14}
 };
 
-unsigned int mod (int a, int b)
+unsigned int modulo(int x, int y)
 {
-	int ret = a % b;
-    if(ret < 0)
-    	ret+=b;
-    return ret;
+	int ret_val = x % y;
+    if(ret_val < 0)
+    	ret_val+=x;
+    return ret_val;
 }
 
 
@@ -115,7 +115,6 @@ void Round(uint64_t * A, unsigned int rnd)
 
 	unsigned int n_start = 12 + 2*6 -rnd;
 	unsigned int n_end = 12 +(2*6);
-	unsigned int x,y;
 
 	//pi^(-1)
 	keccak_pi_1(A);
@@ -263,7 +262,7 @@ void keccak_pi(uint64_t *A){
 	while (posNext != posInitialFlag){
 		posInitial = mapping (x, y); //find the position in the string for the left element of the operation
 		y2 = x; //y index for the right element of the operation
-		x2 = mod ((x + 3*y), 5); //x index for the right element of the operation
+		x2 = modulo ((x + 3*y), 5); //x index for the right element of the operation
 		posNext = mapping (x2, y2); //find the position in the string for the right element of the operation
 
 		/* The element is position 1 has been modified by previous iteraction, so we cannot perform 
@@ -305,7 +304,7 @@ void keccak_pi_1(uint64_t *A){
 	while (posNext != posInitialFlag){
 		posInitial = mapping (x, y); //find the position in the string for the left element of the operation
 		x2 = y; //y index for the right element of the operation
-		y2 = mod ((2*x + 3*y), 5); //x index for the right element of the operation
+		y2 = modulo ((2*x + 3*y), 5); //x index for the right element of the operation
 		posNext = mapping (x2, y2); //find the position in the string for the right element of the operation
 
 		/* The element is position 1 has been modified by previous iteraction, so we cannot perform 
@@ -344,6 +343,7 @@ unsigned char *keccak_p_star(unsigned char *S, unsigned long b, int nr, int l)
 	 * pi^(-1) (the inverse of pi) described in Section 2.1 of the Ketje
 	 * document and Section 8 of the Assignment 2 instructions.
 	 */
+	b = 0;l= 0;
 	unsigned char *output_string = calloc (200,sizeof(unsigned char));
 	memcpy(output_string,S, 200 * sizeof(char));
 

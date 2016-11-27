@@ -44,10 +44,10 @@ void ketje_mj_e(unsigned char *cryptogram,
 	 */
 	/*Initialize the specific parameters */
 	Duplex *D = DuplexInit(1600, 256, 12, 1, 6);
-	
+
 	/*Call the MonkeyWrap function to encrypt data */
 	MonkeyWrap(D, cryptogram, tag, t_len, key,
-		   k_len, nonce, n_len, data, d_len, header, h_len);
+			k_len, nonce, n_len, data, d_len, header, h_len);
 	return;
 
 
@@ -64,13 +64,13 @@ void ketje_mj_e(unsigned char *cryptogram,
  *
  *****************************************************************************/
 
-void
+	void
 MonkeyWrap(Duplex * D, unsigned char *cryptogram,
-	   unsigned char *tag, unsigned int t_len,
-	const unsigned char *key, unsigned int k_len,
-	const unsigned char *nonce, unsigned int n_len,
-	const unsigned char *data, unsigned long d_len,
-	const unsigned char *header, unsigned long h_len)
+		unsigned char *tag, unsigned int t_len,
+		const unsigned char *key, unsigned int k_len,
+		const unsigned char *nonce, unsigned int n_len,
+		const unsigned char *data, unsigned long d_len,
+		const unsigned char *header, unsigned long h_len)
 {
 
 	//trace(printf("Key = %s \nKeylen = %d\n",key,k_len));
@@ -91,9 +91,9 @@ MonkeyWrap(Duplex * D, unsigned char *cryptogram,
  *
  *****************************************************************************/
 
-void
+	void
 MonkeyWrapInitialize(Duplex * D, const unsigned char *key, unsigned int k_len,
-			  const unsigned char *seq_no, unsigned int seq_len)
+		const unsigned char *seq_no, unsigned int seq_len)
 {
 
 	unsigned char *result = NULL, *data_2_feed = NULL;
@@ -117,16 +117,17 @@ MonkeyWrapInitialize(Duplex * D, const unsigned char *key, unsigned int k_len,
 			length = seq_len;
 		else
 			length = D->f - (k_len + 18);
-		
+
 		result_len =
-		    concatenate(&data_2_feed, result, k_len + 16,
-				seq_no, length);
-		
+			concatenate(&data_2_feed, result, k_len + 16,
+					seq_no, length);
+
 		trace(printf("Resulting len of the nonce: %lu == %lu\n",
-		       length, D->f - k_len - 18));
+					(unsigned long)length,
+					(unsigned long) D->f - k_len - 18));
 
 		/*for (unsigned int i = 0; i < BYTE_LEN(result_len); i++)
-			trace(printf("%.2X ", data_2_feed[i]));*/
+		  trace(printf("%.2X ", data_2_feed[i]));*/
 
 		DuplexStart(D, data_2_feed, result_len);
 	} else
@@ -136,37 +137,37 @@ MonkeyWrapInitialize(Duplex * D, const unsigned char *key, unsigned int k_len,
 }
 
 /*****************************************************************************
- * @brief: This set of functions prints the content of a generic state array
+ * @brief: Implementation of MONKEYWRAP.WRAP, the generic encryption function
  * @author: Jacopo Bufalino - jacopobufalino@gmail.com
  * @date: 2016/27/11
- * @return: void
- * @arg: inpunt state array
- * @note: Use them just to debug the code
+ * @return: cryptogram and tag
+ * @arg: DUPLEX Object, header,data
  *
  *****************************************************************************/
 
 void MonkeyWrapWrap(Duplex * D, unsigned char *cryptogram,
-		    unsigned char *tag, unsigned int t_len,
+		unsigned char *tag, unsigned int t_len,
 
-		    const unsigned char *data, unsigned long d_len,
+		const unsigned char *data, unsigned long d_len,
 		const unsigned char *header, unsigned long h_len)
 {
 
 	/* Setup the number of blocks */
 	unsigned long plain_blocks =
-	    ((d_len / D->rho) + (d_len % D->rho ? 1 : 0)), header_blocks =
-	    ((h_len / D->rho) + (h_len % D->rho ? 1 : 0)), data_size =
-	    0, data_len = 0, last_block_size = 0, last_plain =
-	    d_len % D->rho, last_header_len = h_len % D->rho, last_header = 0;
+		((d_len / D->rho) + (d_len % D->rho ? 1 : 0)), header_blocks =
+		((h_len / D->rho) + (h_len % D->rho ? 1 : 0)), data_size =
+		0, data_len = 0,  last_plain =
+		d_len % D->rho, last_header_len = h_len % D->rho,
+	last_header = 0;
 	uint64_t i = 0;
 	unsigned char *data_concatenated = NULL, *Z = NULL, *crypto = NULL;
 	unsigned char *data4second_step = NULL;
 	unsigned int B0;
-	
+
 	/* Find the size of the first block of B and the last of A */
 	if (header_blocks > 0)
 		last_header = header_blocks - 1;
-	
+
 	if (plain_blocks == 1)
 		B0 = last_plain;
 	else if (plain_blocks > 1)
@@ -177,16 +178,16 @@ void MonkeyWrapWrap(Duplex * D, unsigned char *cryptogram,
 	/* allocate space for cryptogram */
 	crypto = calloc(BYTE_LEN(d_len), sizeof(unsigned char));
 	/*
-	trace(printf("allocated %u bytes for crypto\n", BYTE_LEN(d_len)));
-	trace(printf("****************MonkeyWrapWrap stats***********\n"));
-	trace(printf("*\tThere are %lu blocks of text d_len/D->rho \n",
-	plain_blocks));
-	trace(printf("*\tData len d_len is  %lu\n", d_len));
-	trace(printf("*\tD->rho is %u\n", D->rho));
-	trace(printf("*\theader length is %u\n", h_len));
-	trace(printf("*\theader blocks %u\n", header_blocks));
-	trace(printf("***********************************************\n"));
-	*/
+	   trace(printf("allocated %u bytes for crypto\n", BYTE_LEN(d_len)));
+	   trace(printf("****************MonkeyWrapWrap stats***********\n"));
+	   trace(printf("*\tThere are %lu blocks of text d_len/D->rho \n",
+	   plain_blocks));
+	   trace(printf("*\tData len d_len is  %lu\n", d_len));
+	   trace(printf("*\tD->rho is %u\n", D->rho));
+	   trace(printf("*\theader length is %u\n", h_len));
+	   trace(printf("*\theader blocks %u\n", header_blocks));
+	   trace(printf("***********************************************\n"));
+	   */
 
 	/*
 	 * for i = 0 to ∥A∥ − 2 do
@@ -195,32 +196,34 @@ void MonkeyWrapWrap(Duplex * D, unsigned char *cryptogram,
 	for (i = 0; (i <= (header_blocks - 2)) && (header_blocks > 1); ++i)
 	{
 		data_size = concatenate_00(&data_concatenated,
-					   &header[BYTE_LEN(D->rho) * i],
-					   D->rho);
+				&header[BYTE_LEN(D->rho) * i],
+				D->rho);
 		DuplexStep(D, data_concatenated, data_size, 0);
 		free(data_concatenated);
 	}
 
 	/*End of first phase */
-/*trace(printf("\nMONKEYDUPLEX state after the \"for i=0 to ||A||-2\" loop:\n"));
-	for (i = 0; i < (D->f / 8); ++i)
-		trace(printf("%.2x ", D->state[i]));
-	trace(printf("\n"));
-*/
+	/*trace(
+	  printf(
+	  "\nMONKEYDUPLEX state after the \"for i=0 to ||A||-2\" loop:\n"));
+	  for (i = 0; i < (D->f / 8); ++i)
+	  trace(printf("%.2x ", D->state[i]));
+	  trace(printf("\n"));
+	  */
 
 	data_len =
-	    concatenate_01(&data4second_step,
-			   &header[(last_header) * BYTE_LEN(D->rho)]
-			   , last_header_len);
+		concatenate_01(&data4second_step,
+				&header[(last_header) * BYTE_LEN(D->rho)]
+				, last_header_len);
 
-	trace(printf("data_len after concatenating_01 is: %u\n", data_len));
+	trace(printf("data_len after concatenating_01 is: %lu\n", data_len));
 	trace(printf("data is %.2x\n", data4second_step[0]));
 	for (i = 0; i < BYTE_LEN(data_len); i++)
 		trace(printf("%.2x ", data4second_step[i]));
 	trace(printf("\n"));
 	/*      for (i = 0 ; i< BYTE_LEN(data_len) ; i++)
-	   trace(printf("%.2x ",header[i]));
-	   trace(printf("\n")); */
+		trace(printf("%.2x ",header[i]));
+		trace(printf("\n")); */
 	Z = DuplexStep(D, data4second_step, data_len, B0);
 	free(data4second_step);
 
@@ -236,7 +239,8 @@ void MonkeyWrapWrap(Duplex * D, unsigned char *cryptogram,
 	free(Z);
 
 	// at the end it will be equal to Z...
-	trace(printf("\nMONKEYDUPLEX state after stepping the last block of A:\n"));
+	trace(printf(
+		"\nMONKEYDUPLEX state after stepping the last block of A:\n"));
 	for (i = 0; i < (D->f / 8); ++i)
 		trace(printf("%.2x ", D->state[i]));
 	trace(printf("\n"));
@@ -250,16 +254,15 @@ void MonkeyWrapWrap(Duplex * D, unsigned char *cryptogram,
 
 		Z = DuplexStep(D, temp_i, D->rho + 2, D->rho);
 		for (unsigned int j = 0;
-		     j < (i ==
-			  (plain_blocks -
-			   2) ? BYTE_LEN(last_header_len) : BYTE_LEN(D->rho));
-		     j++)
+				j < (i ==(plain_blocks -2) ?	
+				BYTE_LEN(last_header_len) : BYTE_LEN(D->rho));
+				j++)
 			crypto[BYTE_LEN(D->rho) * (i + 1) + j] =
-			    data[BYTE_LEN(D->rho) * (i + 1) + j] ^ Z[j];
+				data[BYTE_LEN(D->rho) * (i + 1) + j] ^ Z[j];
 		/*trace(printf("TODO: implement Ci\n"));
-		   for ( int j = 0 ; j < BYTE_LEN(D->rho) ; ++j)
-		   trace(printf("%.2x ",temp_i[j]));
-		   trace(printf("\n")); */
+		  for ( int j = 0 ; j < BYTE_LEN(D->rho) ; ++j)
+		  trace(printf("%.2x ",temp_i[j]));
+		  trace(printf("\n")); */
 		free(temp_i);
 
 	}
@@ -270,22 +273,20 @@ void MonkeyWrapWrap(Duplex * D, unsigned char *cryptogram,
 
 	//data_len = concatenate_10(&data4second_step,data, last_block_size);
 	// free(data4second_step);
-//EDIT :
-	unsigned char dummy = 0x10;
 	unsigned char *temp_tag;
 	unsigned int temp_tag_len = D->rho;
-	unsigned char *ttag;
-	unsigned long ttag_len;
+
 	unsigned char *in_put;
 	concatenate_10(&in_put, &data[(plain_blocks - 1) * BYTE_LEN(D->rho)],
-		       last_plain);
-/*trace(printf("++++++++++++++++++++++++++\n"));
-for ( i = 0 ; i < BYTE_LEN(last_plain+2) ; ++i)
-		trace(printf("%.2x ",in_put[i]));
-	trace(printf("\n++++++++++++++++++++++++\n"));*/
+			last_plain);
+	/*trace(printf("++++++++++++++++++++++++++\n"));
+	  for ( i = 0 ; i < BYTE_LEN(last_plain+2) ; ++i)
+	  trace(printf("%.2x ",in_put[i]));
+	  trace(printf("\n++++++++++++++++++++++++\n"));*/
 	temp_tag = DuplexStride(D, in_put, last_plain + 2, D->rho);
 	free(in_put);
-	trace(printf("\nMONKEYDUPLEX statiie after stepping the last block of B:\n"));
+	trace(printf(
+		"\nMONKEYDUPLEX state after stepping the last block of B:\n"));
 	for (i = 0; i < (D->f / 8); ++i)
 		trace(printf("%.2x ", D->state[i]));
 	trace(printf("\n"));
@@ -294,15 +295,15 @@ for ( i = 0 ; i < BYTE_LEN(last_plain+2) ; ++i)
 		trace(printf("ANOMAL CASE ************************* \n ABORT"));
 		//exit(1);
 		concatenate(&tmp, temp_tag, D->rho,
-			    DuplexStep(D, NULL, 0, D->rho), D->rho);
+				DuplexStep(D, NULL, 0, D->rho), D->rho);
 		free(temp_tag);
 	}
 	trace(printf("\n\n+++++++++TAG+++++++++++\n\n"));
-	for (int i = 0; i < BYTE_LEN(128); i++)
+	for ( i = 0; i < BYTE_LEN(128); i++)
 		trace(printf("%.2X ", temp_tag[i]));
 	trace(printf("\n"));
 	trace(printf("\n\n+++++++++CRYPTO+++++++++++\n\n"));
-	for (int i = 0; i < BYTE_LEN(d_len); i++)
+	for ( i = 0; i < BYTE_LEN(d_len); i++)
 		trace(printf("%.2X ", crypto[i]));
 	trace(printf("\n"));
 
@@ -330,7 +331,7 @@ for ( i = 0 ; i < BYTE_LEN(last_plain+2) ; ++i)
  *****************************************************************************/
 
 Duplex *DuplexInit(unsigned int f, unsigned int rho, unsigned int n_start,
-		   unsigned int n_step, unsigned int n_stride)
+		unsigned int n_step, unsigned int n_stride)
 {
 
 	Duplex *D = calloc(1, sizeof(Duplex));
@@ -374,7 +375,7 @@ void DuplexStart(Duplex * D, unsigned char *I, unsigned long i_len)
 	   for (int i = 0 ; i < 200 ; i++)
 	   trace(printf("%.2x ",state[i]));
 	   trace(printf("\n\n"));
-	 */
+	   */
 	D->state = keccak_p_star(state, D->rho, D->n_start, D->f);
 	free(padding);
 	free(state);
@@ -395,9 +396,9 @@ void DuplexStart(Duplex * D, unsigned char *I, unsigned long i_len)
  *
  *****************************************************************************/
 
-unsigned char *
+	unsigned char *
 DuplexStep(Duplex * D, unsigned char *sigma, unsigned long s_len,
-			  unsigned long l)
+		unsigned long l)
 {
 
 	unsigned char *pad = NULL, *P = NULL;
@@ -420,12 +421,12 @@ DuplexStep(Duplex * D, unsigned char *sigma, unsigned long s_len,
 
 	/* apply keccak_p_star function */
 	unsigned char *state = keccak_p_star(D->state, D->rho,
-					     D->n_step, D->f);
+			D->n_step, D->f);
 
 	/* copy the output of keccak to the current state */
 	free(D->state);
 	D->state = state;
-	
+
 	/* duplicate the state array and truncate it up to l bits */
 	unsigned char *ret_val = calloc(BYTE_LEN(l), sizeof(char));
 	memcpy(ret_val, state, BYTE_LEN(l) * sizeof(char));
@@ -438,9 +439,9 @@ DuplexStep(Duplex * D, unsigned char *sigma, unsigned long s_len,
 
 }
 
-unsigned char *
+	unsigned char *
 DuplexStride(Duplex * D, unsigned char *sigma,
-			    unsigned long s_len, unsigned long l)
+		unsigned long s_len, unsigned long l)
 {
 
 	unsigned char *pad = NULL, *P = NULL;
@@ -463,7 +464,7 @@ DuplexStride(Duplex * D, unsigned char *sigma,
 
 	/* apply keccak_p_star function */
 	unsigned char *state = keccak_p_star(D->state, D->rho,
-					     D->n_stride, D->f);
+			D->n_stride, D->f);
 
 	/* copy the output of keccak to the current state */
 	free(D->state);
@@ -472,7 +473,7 @@ DuplexStride(Duplex * D, unsigned char *sigma,
 	/* duplicate the state array and truncate it up to l bits */
 	unsigned char *ret_val = calloc(BYTE_LEN(l), sizeof(char));
 	memcpy(ret_val, state, BYTE_LEN(l) * sizeof(char));
-	
+
 	/* free the memory */
 	free(pad);
 	free(P);
@@ -488,9 +489,9 @@ DuplexStride(Duplex * D, unsigned char *sigma,
  * @arg: Key - keysize - alignment value
  *
  *****************************************************************************/
-void
+	void
 keypack(unsigned char **result, const unsigned char *key, unsigned long n_bits,
-	unsigned long l)
+		unsigned long l)
 {
 	//if ( n_bits > (255*8) || n_bits%8 ) exit(EXIT_FAILURE);
 
@@ -504,22 +505,24 @@ keypack(unsigned char **result, const unsigned char *key, unsigned long n_bits,
 
 	/* concatenate 0x01 to the previous string */
 	result_size = concatenate(&res, pad_key, n_bits + 8, &padding, 8);
-	
+
 	/* create an empty array of the desired size l-result_size
 	 * and concatenate it to the previous one to get the final
 	 * result */
 	simple_pad = calloc(BYTE_LEN(l - result_size), sizeof(unsigned char));
 
 	l_conc =
-	    concatenate(result, res, result_size, simple_pad, l - result_size);
-	
+		concatenate(result, res, result_size,
+				simple_pad, l - result_size);
+
 	trace(printf("Len of the array after keypack is: %lu\n", l_conc));
 	trace(printf("****************Keypack stats***********\n"));
 	trace(printf("*\tKeylen is %lu bits\n", n_bits));
 	trace(printf("*\tKeylen is %lu bytes\n", BYTE_LEN(n_bits)));
-	trace(printf("*\tThe first byte of the new array should be %.2X\n", B_val));
+	trace(printf("*\tThe first byte of the new array should be %.2X\n",
+				B_val));
 	trace(printf("****************************************\n"));
-	
+
 	free(res);
 	free(pad_key);
 	free(simple_pad);

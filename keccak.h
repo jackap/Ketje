@@ -34,6 +34,7 @@ unsigned long concatenate_11(unsigned char **Z, const unsigned char *X,
 			     unsigned long X_len);
 unsigned long pad10x1(unsigned char **P, unsigned int x, unsigned int m);
 
+unsigned int modulo(int x, int y);
 /* If needed, you can add your own functions below this line.
  * Do NOT modify anything above. */
 
